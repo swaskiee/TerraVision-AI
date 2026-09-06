@@ -41,10 +41,10 @@ import sys
 # CONFIGURATION
 # ============================================================================
 
-EPOCHS = 35
+EPOCHS = 25
 BATCH_SIZE = 64
-LEARNING_RATE = 0.001
-RANDOM_SEED = 1337
+LEARNING_RATE = 0.0004
+RANDOM_SEED = 42
 PROJECT_NAME = "Intel-Scene"
 DATASET_NAME = "intel-scene"
 NUM_CLASSES = 6  # buildings, forest, glacier, mountain, sea, street (undefined excluded from training)
@@ -176,7 +176,7 @@ def metrics_fn(batch, predictor_output: tlc.PredictorOutput):
 # ============================================================================
 
 # Default: output path for best model (overwritten each run)
-BEST_MODEL_FILENAME = "best_model_seed1337.pth"
+BEST_MODEL_FILENAME = "best_model_finetuned.pth"
 
 
 def train():
@@ -273,18 +273,26 @@ def train():
     )
 
     model = ResNet18Classifier(num_classes=NUM_CLASSES).to(device)
+    
+    # Load our 82.17% champion checkpoint to fine-tune directly
+    champion_path = Path("best_model_seed42.pth")
+    if champion_path.exists():
+        print(f"[OK] Loading champion checkpoint {champion_path} for fine-tuning...")
+        model.load_state_dict(torch.load(champion_path, map_location=device))
+        
     criterion = nn.CrossEntropyLoss(label_smoothing=0.05)
+    # Fine-tuning learning rate (lower step size to preserve learned representations)
     optimizer = optim.SGD(
         model.parameters(),
-        lr=0.01,
+        lr=0.0004,
         momentum=0.9,
-        weight_decay=5e-4,
+        weight_decay=1e-4,
         nesterov=True,
     )
     scheduler = optim.lr_scheduler.CosineAnnealingLR(
         optimizer,
         T_max=EPOCHS,
-        eta_min=1e-4,
+        eta_min=1e-5,
     )
 
     run = tlc.init(
