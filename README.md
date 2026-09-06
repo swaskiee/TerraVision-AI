@@ -1,130 +1,157 @@
-# 🏔️ 3LC × HACKBLOX Scene Classification Challenge
+# 🏔️ 3LC × HACKBLOX SCENE CLASSIFICATION CHALLENGE
+## Official Competition Repository | Team: GenWin (AI Track)
 
-[![3LC Platform](https://img.shields.io/badge/3LC-Data--Centric%20AI-blue.svg)](https://3lc.ai)
+[![3LC Platform](https://img.shields.io/badge/Platform-3LC%20Data--Centric%20AI-0EA5E9.svg)](https://3lc.ai)
 [![Framework](https://img.shields.io/badge/PyTorch-2.6.0%2Bcu124-EE4C2C.svg)](https://pytorch.org)
-[![Hardware](https://img.shields.io/badge/Hardware-NVIDIA%20RTX%203050-76B900.svg)](https://nvidia.com)
-[![Competition](https://img.shields.io/badge/Kaggle-Community%20Challenge-20BEFF.svg)](https://www.kaggle.com/competitions/3-lc-hackblox-scene-classification-challenge)
+[![Hardware](https://img.shields.io/badge/Hardware-NVIDIA%20GeForce%20RTX%203050-76B900.svg)](https://nvidia.com)
+[![Kaggle Standing](https://img.shields.io/badge/Kaggle-Top%208%20(0.833%20Score)-20BEFF.svg)](https://www.kaggle.com/competitions/3-lc-hackblox-scene-classification-challenge)
+[![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
-> **Official Competition Repository** for the 3LC track under HackBlox 2026 (AI Track).  
+> **Official Competition Submission** for the 3LC Track under HackBlox 2026.  
+> **Team Name**: GenWin  
+> **Verified Placement**: **Rank 8** on the official Private Leaderboard (`0.82777` Private / `0.83333` Public)  
 > **Judge Collaborator**: `Rishikesh-Jadhav`  
-> **Team Name**: HackBlox Contenders  
 
 ---
 
-## 📌 Project Overview
+## 📑 Repository Navigation & Documentation Suite
 
-This challenge centers on **Data-Centric AI**: systematically engineering dataset quality and sample distribution rather than modifying model complexity.
+To provide complete transparency for judges and reviewers, our solution is documented across modular technical specifications:
 
-* **Target**: 6-Class Scene Classification (`buildings`, `forest`, `glacier`, `mountain`, `sea`, `street`).
-* **Fixed Architecture**: ResNet-18 trained strictly **from scratch** (`weights=None`).
-* **Constraint**: A maximum labeling budget of **3,000 active rows** with $\text{weight}=1$ in the final train table (including 600 seed samples).
-* **Objective**: Maximize accuracy on 1,800 hidden test images via iterative **3LC** latent-space inspection, error auditing, and confidence/margin-based active curation.
+* 📖 **[`WRITEUP.md`](WRITEUP.md)**: Academic-grade technical report covering active learning iterations, Bayes error discovery, and mathematical formulations.
+* ⚖️ **[`COMPLIANCE.md`](COMPLIANCE.md)**: Point-by-point verification matrix auditing our code against all competition rules and budget limits.
+* 🔬 **[`METHODOLOGY.md`](METHODOLOGY.md)**: Deep dive into the 3LC data-centric pipeline, margin mining, and 14-view multi-scale Test-Time Augmentation (TTA).
+* 📊 **[`RESULTS.md`](RESULTS.md)**: Detailed experimental progression tables, confusion matrices, and leaderboard progression logs.
+* 🖥️ **[`presentation_deck.md`](presentation_deck.md)**: Comprehensive presentation notes and viva examination cheat-sheet.
 
 ---
 
-## 📊 End-to-End Pipeline Architecture
+## 📌 Executive Summary
+
+Under strict competition rules, participants were tasked with building a 6-class natural scene classifier:
+* **Architecture Locked**: Fixed to **ResNet-18** only.
+* **Strictly From Scratch**: **No Pretrained Weights allowed** (`weights=None`).
+* **Hard Labeling Budget**: Maximum **3,000 active rows** with $\text{weight}=1$ in the final 3LC training table.
+
+Instead of model-hacking, our team took a **pure Data-Centric AI approach using 3LC**. By diagnosing class overlap in 3D UMAP feature embeddings, we designed an asymmetric active learning loop that prioritized the ambiguous **glacier-mountain-sea** topological boundary. 
+
+### Final Standings:
+* **Cold-Start Baseline**: 68.66% Test
+* **Final Private Leaderboard**: **0.82777 (Rank 8)**
+* **Final Public Leaderboard**: **0.83333 (Top Tier)**
+* **Budget Used**: **2,960 / 3,000 active rows** ($\le 3,000$ cap compliant)
+
+---
+
+## 🚀 End-to-End Pipeline Architecture
 
 ```mermaid
-graph TD
-    A[Seed Pool: 600 Labeled Samples] --> B[Initial Scratch Training - ResNet-18]
-    B --> C[3LC Embeddings & Metrics Collector]
-    C --> D[3D UMAP Latent Space & Error Audit]
-    D --> E{Active Learning Selection}
-    E -->|Phase 1: Confidence Mining| F[2,700 Active Samples]
-    E -->|Phase 2: Dual-View Consensus| G[2,880 Active Samples]
-    E -->|Phase 3: Margin & Class Balancing| H[2,960 Active Samples]
-    H --> I[GPU-Accelerated Native 224px Training]
-    I --> J[Mixup Regularization + Cosine Annealing]
-    J --> K[Dual-View TTA Inference]
-    K --> L[Final Kaggle Submission: 0.84 - 0.86 Range]
+flowchart TD
+    subgraph DataEngine ["3LC Data Engine (6,600 Images)"]
+        S[600 Labeled Seed Samples]
+        U[6,000 Unlabeled Undefined Pool]
+        T[(3LC Versioned Table - 2,960 Active Rows)]
+    end
+
+    subgraph Diagnostics ["Latent Space Audit"]
+        UMAP[3D UMAP Feature Embeddings]
+        Matrix[Confusion Matrix & Margin Mining]
+    end
+
+    subgraph Optimization ["GPU Training Loop"]
+        R18[ResNet-18 From Scratch - Native 224px]
+        Head[BatchNorm1d -> Linear 512-256 -> Dropout 0.2 -> Linear 256-6]
+        Mix[Mixup Augmentation alpha=0.3]
+        Sched[SGD + Nesterov + Cosine Annealing]
+    end
+
+    subgraph Inference ["Test-Time Consensus Engine"]
+        TTA[14-View Multi-Scale Spatial Decomposition]
+        Prior[Soft Square-Root Bayesian Prior Calibration]
+        Sub[submission.csv - Verified 1,800 Predictions]
+    end
+
+    S --> T
+    U -->|Margin Active Selection| T
+    T --> R18
+    R18 --> Head --> Mix --> Sched
+    Sched --> Diagnostics
+    Diagnostics -->|Rebalance Hard Classes| T
+    R18 --> TTA
+    TTA --> Prior --> Sub
 ```
 
 ---
 
-## 🚀 Performance Progression
-
-| Iteration | Active Budget | Strategy / Innovation | Val Accuracy | Estimated Test / Leaderboard |
-|---|---|---|---|---|
-| **Baseline (Seed)** | 600 / 3,000 | 100 samples/class, 150px resolution | 70.33% | 0.68666 |
-| **Iteration 1** | 2,700 / 3,000 | Model confidence anchor mining | 73.08% | 0.74500 |
-| **Iteration 2** | 2,880 / 3,000 | Dual-view consensus filtering | 76.67% | 0.78500 |
-| **Iteration 3** | 2,960 / 3,000 | Margin sampling + hard-class quotas | 79.75% | 0.82500 |
-| **Final GPU Model** | **2,960 / 3,000** | **224px + Mixup + Cosine Anneal + TTA** | **80.5% - 82.5%** | **0.84 - 0.86+ (Top 3)** |
-
----
-
-## 🛠️ Key Technical Innovations
-
-### 1. Latent Space Auditing with 3LC 3D UMAP
-Using the 3LC Dashboard, we mapped feature embeddings across training runs. While `forest` and `buildings` formed well-delineated, distant clusters, severe entanglement was observed among `glacier`, `mountain`, and `sea`. We used 3LC per-sample metrics to uncover that 37 glacier samples were being confused for mountain peaks due to snow cover.
-
-### 2. Boundary Margin Mining
-Instead of naive confidence sampling (which over-samples easily recognizable scenes), we formulated a margin score:
-$$\text{Margin}(x) = P_{(1)}(x) - P_{(2)}(x)$$
-We actively selected informative borderline cases, assigning higher quotas to the ambiguous topological classes (440 samples each to `glacier`, `mountain`, and `sea`, vs. 320 to `forest`).
-
-### 3. Native 224px Resolution & Architecture Optimization
-* Switched input resolution from 150px to native **224px**, matching ResNet-18's receptive field.
-* Integrated `BatchNorm1d` before the linear classification head to normalize representations.
-* Applied **Mixup Augmentation** ($\alpha=0.3$) and **Cosine Annealing** with SGD + Nesterov momentum.
-
-### 4. Dual-View Test-Time Augmentation (TTA)
-During inference in `predict.py`, the model computes predictions on both original and horizontally flipped test inputs, averaging the raw softmax probabilities:
-$$\bar{P}(y=c \mid x) = \frac{1}{2} \left( \sigma(f(x))_c + \sigma(f(\text{flip}(x)))_c \right)$$
-This eliminates perspective bias and yields an immediate **$+2.0\%$ to $+3.5\%$** accuracy boost on the test set.
-
----
-
-## 📁 Repository Structure
+## 📂 Repository Structure
 
 ```
-├── data/
-│   ├── train/                 # 600 seed labeled + 6,000 undefined pool
-│   ├── val/                   # 1,200 balanced validation scenes
-│   └── test/                  # 1,800 unlabeled test evaluation scenes
-├── submissions/               # Timestamped historical Kaggle submissions
-├── train.py                   # GPU-accelerated ResNet-18 training with 3LC integration
-├── predict.py                 # Test-time augmentation (TTA) inference script
-├── register_tables.py         # 3LC project and dataset table initializer
-├── curate_margin.py           # Active learning margin mining script
-├── WRITEUP.md                 # Complete technical writeup for offline judges
-├── Intel-Scene-3LC-Project.zip# Full 3LC project archive (lineage, tables, runs)
-└── README.md                  # Project documentation
+├── .gitignore                          # Clean repository filter (ignores large datasets/checkpoints)
+├── README.md                           # Master project documentation (this file)
+├── WRITEUP.md                          # Complete technical report for offline judges
+├── COMPLIANCE.md                       # Comprehensive competition rule audit checklist
+├── METHODOLOGY.md                      # Mathematical & architectural deep-dive
+├── RESULTS.md                          # Experimental logs, scores, and class metrics
+├── presentation_deck.md                # Comprehensive presentation script and viva study guide
+├── 3LC_Scene_Classification_Presentation.pptx # 16:9 modern widescreen slide deck
+├── train.py                            # GPU-accelerated ResNet-18 training with 3LC integration
+├── predict.py                          # Triple-ensemble multi-scale 14-view TTA inference engine
+├── ensemble_predict.py                 # Dual-model probability consensus blender
+├── optimal_trust_blend.py              # Selective confidence thresholding post-processor
+├── register_tables.py                  # 3LC project initialization & table schema creator
+├── curate_margin.py                    # Probability margin mining algorithm for active learning
+├── sample_submission.csv               # Official Kaggle template
+├── submission.csv                      # Final verified competition submission
+└── Intel-Scene-3LC-Project.zip         # Archived 3LC project directory (tables, runs, UMAP)
 ```
 
 ---
 
-## ⚙️ Reproducibility & Execution
+## ⚙️ Reproducibility & Environment Setup
 
-### 1. Environment Setup
+### 1. Prerequisites
+* Python 3.10 – 3.13
+* Windows, Linux, or macOS with NVIDIA CUDA support
+
+### 2. Installation
 ```cmd
 python -m venv 3lc-env
 3lc-env\Scripts\activate
+
+# Install CUDA-enabled PyTorch
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
-pip install --index-url https://pypi.3lc.ai/public/repositories/releases-public --extra-index-url https://pypi.org/simple 3lc==2.22.3 joblib pytz umap-learn
+
+# Install 3LC and dependencies
+pip install --index-url https://pypi.3lc.ai/public/repositories/releases-public --extra-index-url https://pypi.org/simple 3lc==2.22.3 joblib pytz umap-learn python-pptx pandas tqdm
 ```
 
-### 2. 3LC Service & Training
+### 3. Execution Pipeline
 ```cmd
-# Terminal 1: Launch 3LC Object Service
+# Step 1: Start local 3LC background service
 3lc service
 
-# Terminal 2: Execute Training Pipeline
-python train.py
-```
+# Step 2: Register tables (run once)
+python register_tables.py
 
-### 3. Generate Kaggle Predictions
-```cmd
+# Step 3: Train model (GPU-accelerated, ~24s/epoch)
+python train.py
+
+# Step 4: Run multi-scale TTA inference
 python predict.py
-# Outputs submission.csv (aligned with sample_submission.csv)
 ```
 
 ---
 
-## ⚖️ Competition Rules & Verification
+## ⚖️ Competition Rules & Verification Summary
 
-- [x] **Architecture**: Strictly `models.resnet18(weights=None)` (Random Initialization).
-- [x] **Training Constraints**: No pretrained weights; trained completely from scratch.
-- [x] **Labeling Budget**: Exactly **2,960 active rows** used (Budget cap: $\le 3,000$).
-- [x] **3LC Tooling**: Complete run telemetry, foreign table lineages, and 3D UMAP embeddings preserved in `Intel-Scene-3LC-Project.zip`.
-- [x] **Submission File**: Formatted to `image_id,prediction,confidence` with exactly 1,800 rows.
+| Rule Requirement | Regulation Cap | Our Implementation | Audit Result |
+|---|---|---|---|
+| **Architecture** | ResNet-18 only | `models.resnet18(weights=None)` | **PASSED** |
+| **Weights** | No pretrained weights | Trained 100% from scratch | **PASSED** |
+| **Labeling Budget** | $\le 3,000$ active rows | Exactly **2,960 rows** with weight=1 | **PASSED** |
+| **Test Output** | Exactly 1,800 rows | 1,800 rows matching `sample_submission.csv` | **PASSED** |
+| **Judge Access** | Add collaborator | `Rishikesh-Jadhav` added on GitHub | **PASSED** |
+| **Evaluation Form** | Required for prizes | Form submitted for team `GenWin` | **PASSED** |
+
+---
+*Developed by Team GenWin for the 3LC × HackBlox 2026 AI Challenge.*
