@@ -1,0 +1,8 @@
+3lc-env/
+__pycache__/
+*.pyc
+data/
+*.pth
+submissions/
+*.zip
+.git/
