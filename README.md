@@ -1,16 +1,10 @@
-# 🏔️ 3LC × HACKBLOX SCENE CLASSIFICATION CHALLENGE
-## Official Competition Repository | Team: GenWin (AI Track)
+## TerraVision-AI
 
 [![3LC Platform](https://img.shields.io/badge/Platform-3LC%20Data--Centric%20AI-0EA5E9.svg)](https://3lc.ai)
 [![Framework](https://img.shields.io/badge/PyTorch-2.6.0%2Bcu124-EE4C2C.svg)](https://pytorch.org)
 [![Hardware](https://img.shields.io/badge/Hardware-NVIDIA%20GeForce%20RTX%203050-76B900.svg)](https://nvidia.com)
 [![Kaggle Standing](https://img.shields.io/badge/Kaggle-Top%208%20(0.833%20Score)-20BEFF.svg)](https://www.kaggle.com/competitions/3-lc-hackblox-scene-classification-challenge)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
-
-> **Official Competition Submission** for the 3LC Track under HackBlox 2026.  
-> **Team Name**: GenWin  
-> **Verified Placement**: **Rank 8** on the official Private Leaderboard (`0.82777` Private / `0.83333` Public)  
-> **Judge Collaborator**: `Rishikesh-Jadhav`  
 
 ---
 
